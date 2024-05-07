@@ -1,0 +1,50 @@
+django-admin startproject event_management
+
+cd event_management
+python manage.py startapp events
+
+from django.db import models
+
+class Event(models.Model):
+    title = models.CharField(max_length=100)
+    description = models.TextField()
+    date = models.DateField()
+    time = models.TimeField()
+    location = models.CharField(max_length=200)
+    max_capacity = models.IntegerField()
+    current_capacity = models.IntegerField(default=0)
+
+class Participant(models.Model):
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
+    email = models.EmailField()
+    phone = models.CharField(max_length=20)
+
+
+from django.shortcuts import render
+from .models import Event, Participant
+
+def event_list(request):
+    events = Event.objects.all()
+    return render(request, 'events/event_list.html', {'events': events})
+
+def event_detail(request, event_id):
+    event = Event.objects.get(id=event_id)
+    return render(request, 'events/event_detail.html', {'event': event})
+
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('', views.event_list, name='event_list'),
+    path('<int:event_id>/', views.event_detail, name='event_detail'),
+]
+
+
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', include('events.urls')),
+]
